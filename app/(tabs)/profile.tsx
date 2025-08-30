@@ -9,7 +9,7 @@ import { ChevronRight, ChevronLeft, ChevronUp } from 'lucide-react-native';
 const { width } = Dimensions.get('window');
 
 export default function ProfileScreen() {
-  const { profile, saveProfile, updateMaxReps, getUserPercentile, addWeightEntry, getWeightProgress } = useWorkout();
+  const { profile, saveProfile, updateMaxReps, getUserPercentile, addWeightEntry, getWeightProgress, weights } = useWorkout();
   const [isEditing, setIsEditing] = useState(!profile);
   const [formData, setFormData] = useState<Partial<UserProfile>>(
     profile || {
@@ -153,7 +153,6 @@ export default function ProfileScreen() {
   };
 
   const renderWeightCalendar = () => {
-    const { weights } = useWorkout();
     
     const getDaysInMonth = (date: Date) => {
       return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
