@@ -392,7 +392,7 @@ export default function ProfileScreen() {
                 }
               }}
             >
-              <LogIn size={20} color="#FFFFFF" />
+              <LogIn size={16} color="#FFFFFF" />
               <Text style={styles.googleSignInButtonText}>Войти через Google</Text>
             </TouchableOpacity>
           )}
@@ -938,24 +938,25 @@ const styles = StyleSheet.create({
   },
   googleAuthContainer: {
     backgroundColor: Colors.dark.surface,
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 24,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 20,
     borderWidth: 1,
     borderColor: Colors.dark.border,
   },
   googleSignInButton: {
     backgroundColor: '#4285F4',
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
+    gap: 8,
   },
   googleSignInButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
   },
   googleUserInfo: {
