@@ -50,7 +50,7 @@ export interface Achievement {
   icon: string; // emoji or icon name
   category: 'beginner' | 'intermediate' | 'advanced' | 'expert' | 'legendary';
   requirement: {
-    type: 'total_reps' | 'single_set' | 'daily_streak' | 'weekly_total' | 'monthly_total' | 'consistency' | 'improvement';
+    type: 'total_reps' | 'single_set' | 'daily_streak' | 'weekly_total' | 'monthly_total' | 'consistency' | 'improvement' | 'daily_sets';
     value: number;
     timeframe?: 'day' | 'week' | 'month' | 'all_time';
   };

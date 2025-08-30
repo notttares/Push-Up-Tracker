@@ -1,5 +1,7 @@
 import { Achievement } from '@/types/workout';
 
+// All achievements are now visible from the start
+
 export const ACHIEVEMENTS: Achievement[] = [
   // Beginner achievements
   {
@@ -249,6 +251,167 @@ export const ACHIEVEMENTS: Achievement[] = [
     requirement: {
       type: 'daily_streak',
       value: 365
+    }
+  },
+
+  // Additional achievements to reach 35 total
+  {
+    id: 'five_sets_day',
+    title: 'Пятикратный',
+    description: 'Выполните 5 подходов за один день',
+    icon: '✋',
+    category: 'beginner',
+    requirement: {
+      type: 'daily_sets',
+      value: 5
+    }
+  },
+  {
+    id: 'fifteen_set',
+    title: 'Пятнашка',
+    description: 'Выполните 15 отжиманий за один подход',
+    icon: '🎯',
+    category: 'beginner',
+    requirement: {
+      type: 'single_set',
+      value: 15
+    }
+  },
+  {
+    id: 'fifty_daily',
+    title: 'Полсотни за день',
+    description: 'Выполните 50 отжиманий за один день',
+    icon: '🔥',
+    category: 'intermediate',
+    requirement: {
+      type: 'weekly_total',
+      value: 50,
+      timeframe: 'day'
+    }
+  },
+  {
+    id: 'ten_sets_day',
+    title: 'Десятикратный',
+    description: 'Выполните 10 подходов за один день',
+    icon: '🔟',
+    category: 'intermediate',
+    requirement: {
+      type: 'daily_sets',
+      value: 10
+    }
+  },
+  {
+    id: 'thirty_five_set',
+    title: 'Тридцать пять',
+    description: 'Выполните 35 отжиманий за один подход',
+    icon: '⚡',
+    category: 'intermediate',
+    requirement: {
+      type: 'single_set',
+      value: 35
+    }
+  },
+  {
+    id: 'three_hundred_daily',
+    title: 'Тройная сотня',
+    description: 'Выполните 300 отжиманий за один день',
+    icon: '🌪️',
+    category: 'advanced',
+    requirement: {
+      type: 'weekly_total',
+      value: 300,
+      timeframe: 'day'
+    }
+  },
+  {
+    id: 'fifteen_sets_day',
+    title: 'Пятнадцатикратный',
+    description: 'Выполните 15 подходов за один день',
+    icon: '🎪',
+    category: 'advanced',
+    requirement: {
+      type: 'daily_sets',
+      value: 15
+    }
+  },
+  {
+    id: 'sixty_set',
+    title: 'Шестьдесят силы',
+    description: 'Выполните 60 отжиманий за один подход',
+    icon: '💪',
+    category: 'advanced',
+    requirement: {
+      type: 'single_set',
+      value: 60
+    }
+  },
+  {
+    id: 'two_thousand_total',
+    title: 'Двухтысячник',
+    description: 'Выполните 2000 отжиманий всего',
+    icon: '🏆',
+    category: 'advanced',
+    requirement: {
+      type: 'total_reps',
+      value: 2000,
+      timeframe: 'all_time'
+    }
+  },
+  {
+    id: 'eighty_set',
+    title: 'Восьмидесятка',
+    description: 'Выполните 80 отжиманий за один подход',
+    icon: '🚀',
+    category: 'expert',
+    requirement: {
+      type: 'single_set',
+      value: 80
+    }
+  },
+  {
+    id: 'twenty_sets_day',
+    title: 'Двадцатикратный',
+    description: 'Выполните 20 подходов за один день',
+    icon: '🎭',
+    category: 'expert',
+    requirement: {
+      type: 'daily_sets',
+      value: 20
+    }
+  },
+  {
+    id: 'seven_thousand_total',
+    title: 'Семитысячник',
+    description: 'Выполните 7000 отжиманий всего',
+    icon: '💎',
+    category: 'expert',
+    requirement: {
+      type: 'total_reps',
+      value: 7000,
+      timeframe: 'all_time'
+    }
+  },
+  {
+    id: 'hundred_twenty_set',
+    title: 'Сверхчеловек',
+    description: 'Выполните 120 отжиманий за один подход',
+    icon: '🦸',
+    category: 'legendary',
+    requirement: {
+      type: 'single_set',
+      value: 120
+    }
+  },
+  {
+    id: 'twenty_thousand_total',
+    title: 'Двадцатитысячник',
+    description: 'Выполните 20000 отжиманий всего',
+    icon: '🌌',
+    category: 'legendary',
+    requirement: {
+      type: 'total_reps',
+      value: 20000,
+      timeframe: 'all_time'
     }
   }
 ];

@@ -332,6 +332,14 @@ export const [WorkoutProvider, useWorkout] = createContextHook(() => {
           isUnlocked = streak.current >= achievement.requirement.value;
           break;
           
+        case 'daily_sets':
+          const today = new Date().toISOString().split('T')[0];
+          const todayWorkout = updatedWorkouts.find(w => w.date === today);
+          const todaySets = todayWorkout?.sets.length || 0;
+          progress = Math.min(100, (todaySets / achievement.requirement.value) * 100);
+          isUnlocked = todaySets >= achievement.requirement.value;
+          break;
+          
         case 'weekly_total':
           if (achievement.requirement.timeframe === 'day') {
             const today = new Date().toISOString().split('T')[0];
@@ -385,11 +393,19 @@ export const [WorkoutProvider, useWorkout] = createContextHook(() => {
   };
 
   const getUnlockedAchievements = () => {
-    return achievements.filter(a => a.unlockedAt).sort((a, b) => (b.unlockedAt || 0) - (a.unlockedAt || 0));
+    return getAllAchievements().filter(a => a.unlockedAt).sort((a, b) => (b.unlockedAt || 0) - (a.unlockedAt || 0));
   };
 
   const getLockedAchievements = () => {
-    return achievements.filter(a => !a.unlockedAt).sort((a, b) => (b.progress || 0) - (a.progress || 0));
+    return getAllAchievements().filter(a => !a.unlockedAt).sort((a, b) => (b.progress || 0) - (a.progress || 0));
+  };
+
+  const getAllAchievements = () => {
+    // Merge all achievements from constants with user progress
+    return ACHIEVEMENTS.map(achievement => {
+      const userAchievement = achievements.find(a => a.id === achievement.id);
+      return userAchievement || { ...achievement, progress: 0 };
+    });
   };
 
   const signInWithGoogle = async () => {
@@ -446,6 +462,7 @@ export const [WorkoutProvider, useWorkout] = createContextHook(() => {
     streak,
     getUnlockedAchievements,
     getLockedAchievements,
+    getAllAchievements,
     updateStreak,
     checkAchievements,
   };

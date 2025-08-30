@@ -34,7 +34,6 @@ export default function HomeScreen() {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Text style={styles.greeting}>Время тренировки!</Text>
-          <Text style={styles.date}>{formatDate(todayWorkout.date)}</Text>
         </View>
 
         <View style={styles.statsContainer}>
@@ -50,17 +49,7 @@ export default function HomeScreen() {
           />
         </View>
 
-        <View style={styles.streakContainer}>
-          <Flame size={20} color={Colors.dark.primary} />
-          <Text style={styles.streakText}>
-            Текущая серия: <Text style={styles.streakValue}>{streak.current} дней</Text>
-          </Text>
-          {streak.longest > 0 && (
-            <Text style={styles.bestStreak}>
-              Лучшая: {streak.longest} дней
-            </Text>
-          )}
-        </View>
+
 
         <View style={styles.buttonContainer}>
           <CircularButton
@@ -131,10 +120,7 @@ const styles = StyleSheet.create({
     color: Colors.dark.text,
     marginBottom: 8,
   },
-  date: {
-    fontSize: 16,
-    color: Colors.dark.textSecondary,
-  },
+
   statsContainer: {
     flexDirection: 'row',
     marginBottom: 40,
@@ -143,29 +129,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 40,
   },
-  streakContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.dark.surface,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 32,
-    gap: 8,
-  },
-  streakText: {
-    fontSize: 16,
-    color: Colors.dark.textSecondary,
-  },
-  streakValue: {
-    fontWeight: 'bold',
-    color: Colors.dark.text,
-  },
-  bestStreak: {
-    fontSize: 12,
-    color: Colors.dark.textTertiary,
-    marginLeft: 8,
-  },
+
   setsContainer: {
     marginTop: 20,
   },
