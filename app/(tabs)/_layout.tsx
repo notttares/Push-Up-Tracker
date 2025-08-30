@@ -1,6 +1,6 @@
 import { Tabs } from "expo-router";
 import React from "react";
-import { Home, TrendingUp, User, Lightbulb } from "lucide-react-native";
+import { Home, TrendingUp, User, Lightbulb, Heart } from "lucide-react-native";
 import Colors from "@/constants/colors";
 
 export default function TabLayout() {
@@ -38,6 +38,13 @@ export default function TabLayout() {
         options={{
           title: "Прогресс",
           tabBarIcon: ({ color }) => <TrendingUp size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="recovery"
+        options={{
+          title: "Восстановление",
+          tabBarIcon: ({ color }) => <Heart size={24} color={color} />,
         }}
       />
       <Tabs.Screen

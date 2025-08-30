@@ -1,18 +1,20 @@
 import createContextHook from '@nkzw/create-context-hook';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useState, useEffect, useMemo } from 'react';
-import { DayWorkout, WorkoutSet, UserProfile, WeeklyStats, WeightEntry } from '@/types/workout';
+import { DayWorkout, WorkoutSet, UserProfile, WeeklyStats, WeightEntry, GoogleUser } from '@/types/workout';
 
 const STORAGE_KEYS = {
   WORKOUTS: 'workouts',
   PROFILE: 'profile',
   WEIGHTS: 'weights',
+  GOOGLE_USER: 'google_user',
 };
 
 export const [WorkoutProvider, useWorkout] = createContextHook(() => {
   const [workouts, setWorkouts] = useState<DayWorkout[]>([]);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [weights, setWeights] = useState<WeightEntry[]>([]);
+  const [googleUser, setGoogleUser] = useState<GoogleUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Load data on mount
@@ -22,10 +24,11 @@ export const [WorkoutProvider, useWorkout] = createContextHook(() => {
 
   const loadData = async () => {
     try {
-      const [workoutsData, profileData, weightsData] = await Promise.all([
+      const [workoutsData, profileData, weightsData, googleUserData] = await Promise.all([
         AsyncStorage.getItem(STORAGE_KEYS.WORKOUTS),
         AsyncStorage.getItem(STORAGE_KEYS.PROFILE),
         AsyncStorage.getItem(STORAGE_KEYS.WEIGHTS),
+        AsyncStorage.getItem(STORAGE_KEYS.GOOGLE_USER),
       ]);
 
       if (workoutsData) {
@@ -36,6 +39,9 @@ export const [WorkoutProvider, useWorkout] = createContextHook(() => {
       }
       if (weightsData) {
         setWeights(JSON.parse(weightsData));
+      }
+      if (googleUserData) {
+        setGoogleUser(JSON.parse(googleUserData));
       }
     } catch (error) {
       console.error('Error loading data:', error);
@@ -239,6 +245,39 @@ export const [WorkoutProvider, useWorkout] = createContextHook(() => {
     return Math.min(95, Math.max(5, basePercentile));
   };
 
+  const signInWithGoogle = async () => {
+    // Mock Google Sign-In for demo purposes
+    // In a real app, you would use @react-native-google-signin/google-signin
+    try {
+      const mockUser: GoogleUser = {
+        id: 'mock_user_123',
+        email: 'user@example.com',
+        name: 'Пользователь Demo',
+        photo: 'https://via.placeholder.com/100',
+        givenName: 'Пользователь',
+        familyName: 'Demo',
+      };
+      
+      await AsyncStorage.setItem(STORAGE_KEYS.GOOGLE_USER, JSON.stringify(mockUser));
+      setGoogleUser(mockUser);
+      
+      return mockUser;
+    } catch (error) {
+      console.error('Error signing in with Google:', error);
+      throw error;
+    }
+  };
+
+  const signOut = async () => {
+    try {
+      await AsyncStorage.removeItem(STORAGE_KEYS.GOOGLE_USER);
+      setGoogleUser(null);
+    } catch (error) {
+      console.error('Error signing out:', error);
+      throw error;
+    }
+  };
+
   return {
     workouts,
     profile,
@@ -253,5 +292,8 @@ export const [WorkoutProvider, useWorkout] = createContextHook(() => {
     addWeightEntry,
     getWeightProgress,
     getUserPercentile,
+    googleUser,
+    signInWithGoogle,
+    signOut,
   };
 });

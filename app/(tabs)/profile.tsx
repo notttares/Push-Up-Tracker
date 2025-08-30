@@ -4,12 +4,12 @@ import { useWorkout } from '@/hooks/workout-store';
 import StatsCard from '@/components/StatsCard';
 import Colors from '@/constants/colors';
 import { UserProfile } from '@/types/workout';
-import { ChevronRight, ChevronLeft, ChevronUp } from 'lucide-react-native';
+import { ChevronRight, ChevronLeft, ChevronUp, LogIn, LogOut } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
 export default function ProfileScreen() {
-  const { profile, saveProfile, updateMaxReps, getUserPercentile, addWeightEntry, getWeightProgress, weights } = useWorkout();
+  const { profile, saveProfile, updateMaxReps, getUserPercentile, addWeightEntry, getWeightProgress, weights, googleUser, signInWithGoogle, signOut } = useWorkout();
   const [isEditing, setIsEditing] = useState(!profile);
   const [formData, setFormData] = useState<Partial<UserProfile>>(
     profile || {
@@ -352,6 +352,50 @@ export default function ProfileScreen() {
           >
             <Text style={styles.editButtonText}>Редактировать</Text>
           </TouchableOpacity>
+        </View>
+
+        <View style={styles.googleAuthContainer}>
+          {googleUser ? (
+            <View style={styles.googleUserInfo}>
+              <View style={styles.googleUserDetails}>
+                <Text style={styles.googleUserName}>{googleUser.name}</Text>
+                <Text style={styles.googleUserEmail}>{googleUser.email}</Text>
+                <Text style={styles.syncStatus}>✅ Данные синхронизированы</Text>
+              </View>
+              <TouchableOpacity
+                style={styles.signOutButton}
+                onPress={async () => {
+                  try {
+                    await signOut();
+                    Alert.alert('Успешно', 'Вы вышли из аккаунта');
+                  } catch (error) {
+                    Alert.alert('Ошибка', 'Не удалось выйти из аккаунта');
+                  }
+                }}
+              >
+                <LogOut size={20} color={Colors.dark.text} />
+                <Text style={styles.signOutButtonText}>Выйти</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={styles.googleSignInButton}
+              onPress={async () => {
+                try {
+                  await signInWithGoogle();
+                  Alert.alert(
+                    'Успешно!',
+                    'Вы вошли в аккаунт Google. Теперь ваши данные будут синхронизированы.'
+                  );
+                } catch (error) {
+                  Alert.alert('Ошибка', 'Не удалось войти в аккаунт Google');
+                }
+              }}
+            >
+              <LogIn size={20} color="#FFFFFF" />
+              <Text style={styles.googleSignInButtonText}>Войти через Google</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={styles.statsContainer}>
@@ -891,6 +935,68 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.dark.primary + '20',
     borderRadius: 12,
     padding: 4,
+  },
+  googleAuthContainer: {
+    backgroundColor: Colors.dark.surface,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: Colors.dark.border,
+  },
+  googleSignInButton: {
+    backgroundColor: '#4285F4',
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  googleSignInButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  googleUserInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  googleUserDetails: {
+    flex: 1,
+  },
+  googleUserName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: Colors.dark.text,
+    marginBottom: 4,
+  },
+  googleUserEmail: {
+    fontSize: 14,
+    color: Colors.dark.textSecondary,
+    marginBottom: 4,
+  },
+  syncStatus: {
+    fontSize: 12,
+    color: Colors.dark.success,
+    fontWeight: '600',
+  },
+  signOutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: Colors.dark.background,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.dark.border,
+  },
+  signOutButtonText: {
+    fontSize: 14,
+    color: Colors.dark.text,
+    fontWeight: '600',
   },
   weightCalendar: {
     backgroundColor: Colors.dark.surface,

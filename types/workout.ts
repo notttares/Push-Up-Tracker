@@ -33,3 +33,12 @@ export interface WeeklyStats {
   averageReps: number;
   bestDay: number;
 }
+
+export interface GoogleUser {
+  id: string;
+  email: string;
+  name: string;
+  photo?: string;
+  givenName?: string;
+  familyName?: string;
+}
