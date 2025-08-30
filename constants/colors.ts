@@ -19,6 +19,13 @@ const Colors = {
     error: "#F44336",
     tabIconDefault: "#666666",
     tabIconSelected: orange,
+    achievement: {
+      beginner: "#4CAF50",
+      intermediate: "#2196F3",
+      advanced: "#FF6B35",
+      expert: "#9C27B0",
+      legendary: "#FFD700",
+    },
   },
 };
 

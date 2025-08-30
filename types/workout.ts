@@ -42,3 +42,24 @@ export interface GoogleUser {
   givenName?: string;
   familyName?: string;
 }
+
+export interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  icon: string; // emoji or icon name
+  category: 'beginner' | 'intermediate' | 'advanced' | 'expert' | 'legendary';
+  requirement: {
+    type: 'total_reps' | 'single_set' | 'daily_streak' | 'weekly_total' | 'monthly_total' | 'consistency' | 'improvement';
+    value: number;
+    timeframe?: 'day' | 'week' | 'month' | 'all_time';
+  };
+  unlockedAt?: number;
+  progress?: number; // 0-100
+}
+
+export interface StreakData {
+  current: number;
+  longest: number;
+  lastWorkoutDate?: string;
+}

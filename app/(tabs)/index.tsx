@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Alert, PanResponder, Animated } from 'react-native';
-import { Trash2 } from 'lucide-react-native';
+import { Trash2, Flame } from 'lucide-react-native';
 import { useWorkout } from '@/hooks/workout-store';
 import CircularButton from '@/components/CircularButton';
 import StatsCard from '@/components/StatsCard';
@@ -8,7 +8,7 @@ import AddSetModal from '@/components/AddSetModal';
 import Colors from '@/constants/colors';
 
 export default function HomeScreen() {
-  const { todayWorkout, addWorkoutSet, removeWorkoutSet } = useWorkout();
+  const { todayWorkout, addWorkoutSet, removeWorkoutSet, streak } = useWorkout();
   const [modalVisible, setModalVisible] = useState(false);
 
   const handleAddSet = (reps: number) => {
@@ -48,6 +48,18 @@ export default function HomeScreen() {
             value={todayWorkout.sets.length}
             subtitle="выполнено"
           />
+        </View>
+
+        <View style={styles.streakContainer}>
+          <Flame size={20} color={Colors.dark.primary} />
+          <Text style={styles.streakText}>
+            Текущая серия: <Text style={styles.streakValue}>{streak.current} дней</Text>
+          </Text>
+          {streak.longest > 0 && (
+            <Text style={styles.bestStreak}>
+              Лучшая: {streak.longest} дней
+            </Text>
+          )}
         </View>
 
         <View style={styles.buttonContainer}>
@@ -130,6 +142,29 @@ const styles = StyleSheet.create({
   buttonContainer: {
     alignItems: 'center',
     marginBottom: 40,
+  },
+  streakContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.dark.surface,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 32,
+    gap: 8,
+  },
+  streakText: {
+    fontSize: 16,
+    color: Colors.dark.textSecondary,
+  },
+  streakValue: {
+    fontWeight: 'bold',
+    color: Colors.dark.text,
+  },
+  bestStreak: {
+    fontSize: 12,
+    color: Colors.dark.textTertiary,
+    marginLeft: 8,
   },
   setsContainer: {
     marginTop: 20,

@@ -1,13 +1,16 @@
 import createContextHook from '@nkzw/create-context-hook';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useState, useEffect, useMemo } from 'react';
-import { DayWorkout, WorkoutSet, UserProfile, WeeklyStats, WeightEntry, GoogleUser } from '@/types/workout';
+import { DayWorkout, WorkoutSet, UserProfile, WeeklyStats, WeightEntry, GoogleUser, Achievement, StreakData } from '@/types/workout';
+import { ACHIEVEMENTS } from '@/constants/achievements';
 
 const STORAGE_KEYS = {
   WORKOUTS: 'workouts',
   PROFILE: 'profile',
   WEIGHTS: 'weights',
   GOOGLE_USER: 'google_user',
+  ACHIEVEMENTS: 'achievements',
+  STREAK: 'streak',
 };
 
 export const [WorkoutProvider, useWorkout] = createContextHook(() => {
@@ -15,6 +18,8 @@ export const [WorkoutProvider, useWorkout] = createContextHook(() => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [weights, setWeights] = useState<WeightEntry[]>([]);
   const [googleUser, setGoogleUser] = useState<GoogleUser | null>(null);
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [streak, setStreak] = useState<StreakData>({ current: 0, longest: 0 });
   const [isLoading, setIsLoading] = useState(true);
 
   // Load data on mount
@@ -24,11 +29,13 @@ export const [WorkoutProvider, useWorkout] = createContextHook(() => {
 
   const loadData = async () => {
     try {
-      const [workoutsData, profileData, weightsData, googleUserData] = await Promise.all([
+      const [workoutsData, profileData, weightsData, googleUserData, achievementsData, streakData] = await Promise.all([
         AsyncStorage.getItem(STORAGE_KEYS.WORKOUTS),
         AsyncStorage.getItem(STORAGE_KEYS.PROFILE),
         AsyncStorage.getItem(STORAGE_KEYS.WEIGHTS),
         AsyncStorage.getItem(STORAGE_KEYS.GOOGLE_USER),
+        AsyncStorage.getItem(STORAGE_KEYS.ACHIEVEMENTS),
+        AsyncStorage.getItem(STORAGE_KEYS.STREAK),
       ]);
 
       if (workoutsData) {
@@ -42,6 +49,12 @@ export const [WorkoutProvider, useWorkout] = createContextHook(() => {
       }
       if (googleUserData) {
         setGoogleUser(JSON.parse(googleUserData));
+      }
+      if (achievementsData) {
+        setAchievements(JSON.parse(achievementsData));
+      }
+      if (streakData) {
+        setStreak(JSON.parse(streakData));
       }
     } catch (error) {
       console.error('Error loading data:', error);
@@ -91,6 +104,8 @@ export const [WorkoutProvider, useWorkout] = createContextHook(() => {
     }
 
     saveWorkouts(updatedWorkouts);
+    updateStreak();
+    checkAchievements(updatedWorkouts);
   };
 
   const removeWorkoutSet = (setId: string) => {
@@ -245,6 +260,138 @@ export const [WorkoutProvider, useWorkout] = createContextHook(() => {
     return Math.min(95, Math.max(5, basePercentile));
   };
 
+  const updateStreak = async () => {
+    const today = new Date().toISOString().split('T')[0];
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    
+    const todayWorkout = workouts.find(w => w.date === today);
+    const hasWorkedOutToday = todayWorkout && todayWorkout.sets.length > 0;
+    
+    if (hasWorkedOutToday) {
+      let newCurrent = 1;
+      
+      if (streak.lastWorkoutDate === yesterday) {
+        newCurrent = streak.current + 1;
+      } else if (streak.lastWorkoutDate === today) {
+        newCurrent = streak.current;
+      }
+      
+      const newStreak: StreakData = {
+        current: newCurrent,
+        longest: Math.max(streak.longest, newCurrent),
+        lastWorkoutDate: today,
+      };
+      
+      try {
+        await AsyncStorage.setItem(STORAGE_KEYS.STREAK, JSON.stringify(newStreak));
+        setStreak(newStreak);
+      } catch (error) {
+        console.error('Error saving streak:', error);
+      }
+    } else if (streak.lastWorkoutDate && streak.lastWorkoutDate !== today && streak.lastWorkoutDate !== yesterday) {
+      const newStreak: StreakData = {
+        current: 0,
+        longest: streak.longest,
+        lastWorkoutDate: streak.lastWorkoutDate,
+      };
+      
+      try {
+        await AsyncStorage.setItem(STORAGE_KEYS.STREAK, JSON.stringify(newStreak));
+        setStreak(newStreak);
+      } catch (error) {
+        console.error('Error saving streak:', error);
+      }
+    }
+  };
+
+  const checkAchievements = async (updatedWorkouts: DayWorkout[]) => {
+    const newUnlockedAchievements: Achievement[] = [];
+    
+    for (const achievement of ACHIEVEMENTS) {
+      const existingAchievement = achievements.find(a => a.id === achievement.id);
+      if (existingAchievement?.unlockedAt) continue;
+      
+      let isUnlocked = false;
+      let progress = 0;
+      
+      switch (achievement.requirement.type) {
+        case 'total_reps':
+          const totalReps = updatedWorkouts.reduce((sum, w) => sum + w.totalReps, 0);
+          progress = Math.min(100, (totalReps / achievement.requirement.value) * 100);
+          isUnlocked = totalReps >= achievement.requirement.value;
+          break;
+          
+        case 'single_set':
+          const maxSingleSet = Math.max(...updatedWorkouts.flatMap(w => w.sets.map(s => s.reps)), 0);
+          progress = Math.min(100, (maxSingleSet / achievement.requirement.value) * 100);
+          isUnlocked = maxSingleSet >= achievement.requirement.value;
+          break;
+          
+        case 'daily_streak':
+          progress = Math.min(100, (streak.current / achievement.requirement.value) * 100);
+          isUnlocked = streak.current >= achievement.requirement.value;
+          break;
+          
+        case 'weekly_total':
+          if (achievement.requirement.timeframe === 'day') {
+            const today = new Date().toISOString().split('T')[0];
+            const todayWorkout = updatedWorkouts.find(w => w.date === today);
+            const todayReps = todayWorkout?.totalReps || 0;
+            progress = Math.min(100, (todayReps / achievement.requirement.value) * 100);
+            isUnlocked = todayReps >= achievement.requirement.value;
+          } else if (achievement.requirement.timeframe === 'week') {
+            const weekStart = new Date();
+            weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+            const weekStartStr = weekStart.toISOString().split('T')[0];
+            
+            const weekReps = updatedWorkouts
+              .filter(w => w.date >= weekStartStr)
+              .reduce((sum, w) => sum + w.totalReps, 0);
+            
+            progress = Math.min(100, (weekReps / achievement.requirement.value) * 100);
+            isUnlocked = weekReps >= achievement.requirement.value;
+          }
+          break;
+      }
+      
+      const updatedAchievement: Achievement = {
+        ...achievement,
+        progress,
+        unlockedAt: isUnlocked ? Date.now() : undefined,
+      };
+      
+      if (isUnlocked && !existingAchievement?.unlockedAt) {
+        newUnlockedAchievements.push(updatedAchievement);
+      }
+      
+      const existingIndex = achievements.findIndex(a => a.id === achievement.id);
+      if (existingIndex >= 0) {
+        achievements[existingIndex] = updatedAchievement;
+      } else {
+        achievements.push(updatedAchievement);
+      }
+    }
+    
+    try {
+      await AsyncStorage.setItem(STORAGE_KEYS.ACHIEVEMENTS, JSON.stringify(achievements));
+      setAchievements([...achievements]);
+      
+      if (newUnlockedAchievements.length > 0) {
+        console.log('New achievements unlocked:', newUnlockedAchievements.map(a => a.title));
+      }
+    } catch (error) {
+      console.error('Error saving achievements:', error);
+    }
+  };
+
+  const getUnlockedAchievements = () => {
+    return achievements.filter(a => a.unlockedAt).sort((a, b) => (b.unlockedAt || 0) - (a.unlockedAt || 0));
+  };
+
+  const getLockedAchievements = () => {
+    return achievements.filter(a => !a.unlockedAt).sort((a, b) => (b.progress || 0) - (a.progress || 0));
+  };
+
   const signInWithGoogle = async () => {
     // Mock Google Sign-In for demo purposes
     // In a real app, you would use @react-native-google-signin/google-signin
@@ -295,5 +442,11 @@ export const [WorkoutProvider, useWorkout] = createContextHook(() => {
     googleUser,
     signInWithGoogle,
     signOut,
+    achievements,
+    streak,
+    getUnlockedAchievements,
+    getLockedAchievements,
+    updateStreak,
+    checkAchievements,
   };
 });
