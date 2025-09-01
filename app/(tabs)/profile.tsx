@@ -23,7 +23,7 @@ export default function ProfileScreen() {
   const [weightInput, setWeightInput] = useState<string>('');
   const [showWeightModal, setShowWeightModal] = useState(false);
   const [showBMIModal, setShowBMIModal] = useState(false);
-  const [selectedPeriod, setSelectedPeriod] = useState<'30d' | '60d' | '90d' | '1y' | 'all'>('90d');
+  const [selectedPeriod, setSelectedPeriod] = useState<'30d' | '90d' | '1y' | 'all'>('30d');
   const [showGoalModal, setShowGoalModal] = useState(false);
   const [goalTarget, setGoalTarget] = useState<string>('');
   const [goalType, setGoalType] = useState<'lose' | 'gain'>('lose');
@@ -213,10 +213,10 @@ export default function ProfileScreen() {
         
         <View style={styles.periodSelector}>
           {[
-            { key: '90d' as const, label: '90 Days' },
-            { key: '6m' as const, label: '6 Months' },
-            { key: '1y' as const, label: '1 Year' },
-            { key: 'all' as const, label: 'All time' },
+            { key: '30d' as const, label: '30 дней' },
+            { key: '90d' as const, label: '90 дней' },
+            { key: '1y' as const, label: '1 год' },
+            { key: 'all' as const, label: 'За всё время' },
           ].map(period => (
             <TouchableOpacity
               key={period.key}
@@ -224,7 +224,7 @@ export default function ProfileScreen() {
                 styles.periodButton,
                 selectedPeriod === period.key && styles.periodButtonActive,
               ]}
-              onPress={() => setSelectedPeriod(period.key === '6m' ? '60d' : period.key)}
+              onPress={() => setSelectedPeriod(period.key)}
             >
               <Text
                 style={[
@@ -613,10 +613,7 @@ export default function ProfileScreen() {
                   />
                   <TouchableOpacity
                     style={[styles.testButton, !weightInput && styles.testButtonDisabled]}
-                    onPress={() => {
-                      handleWeightUpdate();
-                      setShowWeightModal(false);
-                    }}
+                    onPress={handleWeightUpdate}
                     disabled={!weightInput}
                   >
                     <Text style={styles.testButtonText}>Добавить</Text>
@@ -648,7 +645,7 @@ export default function ProfileScreen() {
                     }}
                   >
                     <Text style={styles.setGoalButtonText}>
-                      {profile?.weightGoal ? 'Изменить цель веса' : 'Установить цель веса'}
+                      {profile?.weightGoal ? 'Изменить цель' : 'Установить цель'}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -990,9 +987,9 @@ const styles = StyleSheet.create({
   },
   weightChart: {
     backgroundColor: Colors.dark.surface,
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 24,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
     borderWidth: 1,
     borderColor: Colors.dark.border,
   },
@@ -1286,10 +1283,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   goalProgressTitle: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: 'bold',
     color: Colors.dark.text,
   },
@@ -1297,7 +1294,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   goalProgressPercent: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: 'bold',
     color: Colors.dark.text,
   },
@@ -1307,23 +1304,25 @@ const styles = StyleSheet.create({
   },
   periodSelector: {
     flexDirection: 'row',
-    backgroundColor: Colors.dark.surface,
-    borderRadius: 12,
-    padding: 4,
-    marginBottom: 20,
+    backgroundColor: Colors.dark.background,
+    borderRadius: 8,
+    padding: 3,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: Colors.dark.border,
   },
   periodButton: {
     flex: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
     alignItems: 'center',
-    borderRadius: 8,
+    borderRadius: 6,
   },
   periodButtonActive: {
     backgroundColor: Colors.dark.primary,
   },
   periodButtonText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
     color: Colors.dark.textSecondary,
   },
@@ -1332,12 +1331,12 @@ const styles = StyleSheet.create({
   },
   chartContainer: {
     flexDirection: 'row',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   yAxisLabels: {
-    width: 60,
+    width: 50,
     justifyContent: 'space-between',
-    paddingRight: 10,
+    paddingRight: 8,
   },
   yAxisLabel: {
     fontSize: 12,
