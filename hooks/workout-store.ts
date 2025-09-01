@@ -203,15 +203,36 @@ export const [WorkoutProvider, useWorkout] = createContextHook(() => {
     const { target, startWeight, type } = profile.weightGoal;
     
     const totalChange = Math.abs(target - startWeight);
-    const currentChange = Math.abs(currentWeight - startWeight);
-    const progress = Math.min(100, (currentChange / totalChange) * 100);
+    let progress = 0;
+    
+    if (type === 'lose') {
+      // For weight loss: progress increases as weight decreases
+      if (currentWeight <= target) {
+        progress = 100; // Goal achieved
+      } else if (currentWeight >= startWeight) {
+        progress = 0; // No progress yet
+      } else {
+        const weightLost = startWeight - currentWeight;
+        progress = (weightLost / totalChange) * 100;
+      }
+    } else {
+      // For weight gain: progress increases as weight increases
+      if (currentWeight >= target) {
+        progress = 100; // Goal achieved
+      } else if (currentWeight <= startWeight) {
+        progress = 0; // No progress yet
+      } else {
+        const weightGained = currentWeight - startWeight;
+        progress = (weightGained / totalChange) * 100;
+      }
+    }
     
     const isOnTrack = type === 'lose' 
       ? currentWeight <= startWeight 
       : currentWeight >= startWeight;
     
     return {
-      progress: Math.round(progress * 10) / 10,
+      progress: Math.max(0, Math.min(100, Math.round(progress * 10) / 10)),
       currentWeight,
       targetWeight: target,
       startWeight,

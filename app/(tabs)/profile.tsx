@@ -165,9 +165,10 @@ export default function ProfileScreen() {
     }
   };
 
+  const goalProgress = getWeightGoalProgress();
+  
   const renderWeightChart = () => {
     const filteredWeights = getFilteredWeights(selectedPeriod);
-    const goalProgress = getWeightGoalProgress();
     
     if (filteredWeights.length === 0) {
       return (
@@ -201,12 +202,12 @@ export default function ProfileScreen() {
     return (
       <View style={styles.weightChart}>
         <View style={styles.goalProgressHeader}>
-          <Text style={styles.goalProgressTitle}>Goal Progress</Text>
+          <Text style={styles.goalProgressTitle}>Прогресс цели</Text>
           <View style={styles.goalProgressRight}>
             <Text style={styles.goalProgressPercent}>
               {goalProgress ? `${goalProgress.progress.toFixed(1)}%` : '0.0%'}
             </Text>
-            <Text style={styles.goalProgressLabel}>Goal achieved</Text>
+            <Text style={styles.goalProgressLabel}>Достигнуто</Text>
           </View>
         </View>
         
@@ -622,17 +623,35 @@ export default function ProfileScreen() {
                   </TouchableOpacity>
                 </View>
                 
-                {!profile?.weightGoal && (
-                  <View style={styles.goalSection}>
-                    <Text style={styles.sectionTitle}>Установить цель</Text>
-                    <TouchableOpacity
-                      style={styles.setGoalButton}
-                      onPress={() => setShowGoalModal(true)}
-                    >
-                      <Text style={styles.setGoalButtonText}>Установить цель веса</Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
+                <View style={styles.goalSection}>
+                  <Text style={styles.sectionTitle}>
+                    {profile?.weightGoal ? 'Изменить цель' : 'Установить цель'}
+                  </Text>
+                  {profile?.weightGoal && (
+                    <View style={styles.currentGoalInfo}>
+                      <Text style={styles.currentGoalText}>
+                        Текущая цель: {profile.weightGoal.type === 'lose' ? 'снизить' : 'набрать'} вес до {profile.weightGoal.target} кг
+                      </Text>
+                      <Text style={styles.currentGoalProgress}>
+                        Прогресс: {goalProgress ? `${goalProgress.progress.toFixed(1)}%` : '0%'}
+                      </Text>
+                    </View>
+                  )}
+                  <TouchableOpacity
+                    style={styles.setGoalButton}
+                    onPress={() => {
+                      if (profile?.weightGoal) {
+                        setGoalTarget(profile.weightGoal.target.toString());
+                        setGoalType(profile.weightGoal.type);
+                      }
+                      setShowGoalModal(true);
+                    }}
+                  >
+                    <Text style={styles.setGoalButtonText}>
+                      {profile?.weightGoal ? 'Изменить цель веса' : 'Установить цель веса'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </ScrollView>
           </View>
@@ -1400,6 +1419,25 @@ const styles = StyleSheet.create({
   setGoalButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
+    fontWeight: '600',
+  },
+  currentGoalInfo: {
+    backgroundColor: Colors.dark.background,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: Colors.dark.border,
+  },
+  currentGoalText: {
+    fontSize: 16,
+    color: Colors.dark.text,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  currentGoalProgress: {
+    fontSize: 14,
+    color: Colors.dark.primary,
     fontWeight: '600',
   },
   goalTypeSelector: {
