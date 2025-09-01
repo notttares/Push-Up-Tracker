@@ -413,6 +413,237 @@ export const ACHIEVEMENTS: Achievement[] = [
       value: 20000,
       timeframe: 'all_time'
     }
+  },
+
+  // Ultra challenging achievements for experienced users
+  {
+    id: 'hundred_fifty_set',
+    title: 'Абсолютная сила',
+    description: 'Выполните 150 отжиманий за один подход',
+    icon: '⚡',
+    category: 'legendary',
+    requirement: {
+      type: 'single_set',
+      value: 150
+    }
+  },
+  {
+    id: 'thousand_daily_challenge',
+    title: 'Тысяча за день',
+    description: 'Выполните 1000 отжиманий за один день',
+    icon: '🔥',
+    category: 'legendary',
+    requirement: {
+      type: 'weekly_total',
+      value: 1000,
+      timeframe: 'day'
+    }
+  },
+  {
+    id: 'two_hundred_set',
+    title: 'Двухсотка монстр',
+    description: 'Выполните 200 отжиманий за один подход',
+    icon: '👹',
+    category: 'legendary',
+    requirement: {
+      type: 'single_set',
+      value: 200
+    }
+  },
+  {
+    id: 'five_thousand_weekly',
+    title: 'Пятитысячная неделя',
+    description: 'Выполните 5000 отжиманий за неделю',
+    icon: '🌊',
+    category: 'legendary',
+    requirement: {
+      type: 'weekly_total',
+      value: 5000,
+      timeframe: 'week'
+    }
+  },
+  {
+    id: 'fifty_thousand_total',
+    title: 'Пятидесятитысячник',
+    description: 'Выполните 50000 отжиманий всего',
+    icon: '🏔️',
+    category: 'legendary',
+    requirement: {
+      type: 'total_reps',
+      value: 50000,
+      timeframe: 'all_time'
+    }
+  },
+  {
+    id: 'two_year_streak',
+    title: 'Двухлетний гигант',
+    description: 'Занимайтесь 730 дней подряд (2 года)',
+    icon: '🗿',
+    category: 'legendary',
+    requirement: {
+      type: 'daily_streak',
+      value: 730
+    }
+  },
+  {
+    id: 'thirty_sets_day',
+    title: 'Тридцатикратный воин',
+    description: 'Выполните 30 подходов за один день',
+    icon: '⚔️',
+    category: 'expert',
+    requirement: {
+      type: 'daily_sets',
+      value: 30
+    }
+  },
+  {
+    id: 'fifteen_hundred_daily',
+    title: 'Полторы тысячи',
+    description: 'Выполните 1500 отжиманий за один день',
+    icon: '💀',
+    category: 'legendary',
+    requirement: {
+      type: 'weekly_total',
+      value: 1500,
+      timeframe: 'day'
+    }
+  },
+  {
+    id: 'hundred_thousand_total',
+    title: 'Стотысячник',
+    description: 'Выполните 100000 отжиманий всего',
+    icon: '🌟',
+    category: 'legendary',
+    requirement: {
+      type: 'total_reps',
+      value: 100000,
+      timeframe: 'all_time'
+    }
+  },
+  {
+    id: 'three_hundred_set',
+    title: 'Трёхсотка бог',
+    description: 'Выполните 300 отжиманий за один подход',
+    icon: '👑',
+    category: 'legendary',
+    requirement: {
+      type: 'single_set',
+      value: 300
+    }
+  },
+  {
+    id: 'ten_thousand_weekly',
+    title: 'Десятитысячная неделя',
+    description: 'Выполните 10000 отжиманий за неделю',
+    icon: '🌪️',
+    category: 'legendary',
+    requirement: {
+      type: 'weekly_total',
+      value: 10000,
+      timeframe: 'week'
+    }
+  },
+  {
+    id: 'five_year_streak',
+    title: 'Пятилетний титан',
+    description: 'Занимайтесь 1825 дней подряд (5 лет)',
+    icon: '🏛️',
+    category: 'legendary',
+    requirement: {
+      type: 'daily_streak',
+      value: 1825
+    }
+  },
+  {
+    id: 'fifty_sets_day',
+    title: 'Пятидесятикратный демон',
+    description: 'Выполните 50 подходов за один день',
+    icon: '😈',
+    category: 'legendary',
+    requirement: {
+      type: 'daily_sets',
+      value: 50
+    }
+  },
+  {
+    id: 'two_thousand_daily',
+    title: 'Двухтысячный день',
+    description: 'Выполните 2000 отжиманий за один день',
+    icon: '🔱',
+    category: 'legendary',
+    requirement: {
+      type: 'weekly_total',
+      value: 2000,
+      timeframe: 'day'
+    }
+  },
+  {
+    id: 'four_hundred_set',
+    title: 'Четырёхсотка легенда',
+    description: 'Выполните 400 отжиманий за один подход',
+    icon: '🌌',
+    category: 'legendary',
+    requirement: {
+      type: 'single_set',
+      value: 400
+    }
+  },
+  {
+    id: 'twenty_thousand_weekly',
+    title: 'Двадцатитысячная неделя',
+    description: 'Выполните 20000 отжиманий за неделю',
+    icon: '🌊',
+    category: 'legendary',
+    requirement: {
+      type: 'weekly_total',
+      value: 20000,
+      timeframe: 'week'
+    }
+  },
+  {
+    id: 'million_total',
+    title: 'Миллионер',
+    description: 'Выполните 1000000 отжиманий всего',
+    icon: '💎',
+    category: 'legendary',
+    requirement: {
+      type: 'total_reps',
+      value: 1000000,
+      timeframe: 'all_time'
+    }
+  },
+  {
+    id: 'five_hundred_set',
+    title: 'Пятисотка бессмертный',
+    description: 'Выполните 500 отжиманий за один подход',
+    icon: '🔥',
+    category: 'legendary',
+    requirement: {
+      type: 'single_set',
+      value: 500
+    }
+  },
+  {
+    id: 'ten_year_streak',
+    title: 'Десятилетний бог',
+    description: 'Занимайтесь 3650 дней подряд (10 лет)',
+    icon: '🌟',
+    category: 'legendary',
+    requirement: {
+      type: 'daily_streak',
+      value: 3650
+    }
+  },
+  {
+    id: 'hundred_sets_day',
+    title: 'Стократный абсолют',
+    description: 'Выполните 100 подходов за один день',
+    icon: '💀',
+    category: 'legendary',
+    requirement: {
+      type: 'daily_sets',
+      value: 100
+    }
   }
 ];
 
