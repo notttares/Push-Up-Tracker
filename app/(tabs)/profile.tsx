@@ -642,7 +642,11 @@ export default function ProfileScreen() {
               <View style={{ width: 60 }} />
             </View>
             
-            <ScrollView style={styles.modalContent}>
+            <ScrollView
+              contentContainerStyle={styles.modalScrollContent}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
               {renderWeightChart()}
               
               <View style={styles.weightInputSection}>
@@ -714,7 +718,11 @@ export default function ProfileScreen() {
               <View style={{ width: 60 }} />
             </View>
             
-            <ScrollView style={styles.modalContent}>
+            <ScrollView
+              contentContainerStyle={styles.modalScrollContent}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
               <View style={styles.bmiContainer}>
                 <View style={styles.bmiValueContainer}>
                   <Text style={styles.bmiValue}>{bmi}</Text>
@@ -1028,7 +1036,11 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     flex: 1,
+  },
+  modalScrollContent: {
     padding: 20,
+    paddingBottom: 56,
+    gap: 16,
   },
   weightChart: {
     backgroundColor: Colors.dark.surface,

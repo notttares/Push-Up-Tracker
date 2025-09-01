@@ -7,6 +7,7 @@ import { StatusBar } from "expo-status-bar";
 import { Platform, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { WorkoutProvider } from "@/hooks/workout-store";
+import Colors from "@/constants/colors";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -32,7 +33,11 @@ export default function RootLayout() {
         <GestureHandlerRootView style={{ flex: 1 }}>
           <StatusBar style="light" backgroundColor="#0A0A0A" />
           {Platform.OS === "android" ? (
-            <SafeAreaView style={{ flex: 1 }} edges={["top"]} testID="android-safe-top">
+            <SafeAreaView
+              style={{ flex: 1, backgroundColor: Colors.dark.background }}
+              edges={["top"]}
+              testID="android-safe-top"
+            >
               <RootLayoutNav />
             </SafeAreaView>
           ) : (
