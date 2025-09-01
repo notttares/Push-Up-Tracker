@@ -336,11 +336,56 @@ export default function ProfileScreen() {
 
   if (isEditing) {
     return (
-      <ScrollView style={styles.container}>
+      <ScrollView style={styles.container} testID="profile-edit-scroll">
         <View style={styles.content}>
           <Text style={styles.title}>
             {profile ? 'Редактировать профиль' : 'Создать профиль'}
           </Text>
+
+          <View style={styles.googleAuthContainer} testID="google-auth-edit">
+            {googleUser ? (
+              <View style={styles.googleUserInfo}>
+                <View style={styles.googleUserDetails}>
+                  <Text style={styles.googleUserName}>{googleUser.name}</Text>
+                  <Text style={styles.googleUserEmail}>{googleUser.email}</Text>
+                  <Text style={styles.syncStatus}>✅ Данные синхронизированы</Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.signOutButton}
+                  onPress={async () => {
+                    try {
+                      await signOut();
+                      Alert.alert('Успешно', 'Вы вышли из аккаунта');
+                    } catch (error) {
+                      Alert.alert('Ошибка', 'Не удалось выйти из аккаунта');
+                    }
+                  }}
+                >
+                  <LogOut size={20} color={Colors.dark.text} />
+                  <Text style={styles.signOutButtonText}>Выйти</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={styles.googleSignInButton}
+                onPress={async () => {
+                  try {
+                    await signInWithGoogle();
+                    Alert.alert(
+                      'Успешно!',
+                      'Вы вошли в аккаунт Google. Теперь ваши данные будут синхронизированы.'
+                    );
+                  } catch (error) {
+                    Alert.alert('Ошибка', 'Не удалось войти в аккаунт Google');
+                  }
+                }}
+                testID="google-sign-in-button-edit"
+              >
+                <LogIn size={16} color="#FFFFFF" />
+                <Text style={styles.googleSignInButtonText}>Войти через Google</Text>
+              </TouchableOpacity>
+            )}
+          </View>
 
           <View style={styles.form}>
             <View style={styles.inputGroup}>

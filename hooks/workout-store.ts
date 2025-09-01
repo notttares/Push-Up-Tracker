@@ -1,6 +1,10 @@
 import createContextHook from '@nkzw/create-context-hook';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useState, useEffect, useMemo } from 'react';
+import { Platform } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
+import { GOOGLE_OAUTH } from '@/constants/auth';
 import { DayWorkout, WorkoutSet, UserProfile, WeeklyStats, WeightEntry, GoogleUser, Achievement, StreakData } from '@/types/workout';
 import { ACHIEVEMENTS } from '@/constants/achievements';
 
@@ -497,23 +501,72 @@ export const [WorkoutProvider, useWorkout] = createContextHook(() => {
     });
   };
 
-  const signInWithGoogle = async () => {
-    // Mock Google Sign-In for demo purposes
-    // In a real app, you would use @react-native-google-signin/google-signin
+  const signInWithGoogle = async (): Promise<GoogleUser> => {
     try {
-      const mockUser: GoogleUser = {
-        id: 'mock_user_123',
-        email: 'user@example.com',
-        name: 'Пользователь Demo',
-        photo: 'https://via.placeholder.com/100',
-        givenName: 'Пользователь',
-        familyName: 'Demo',
+      const clientId = Platform.select({
+        ios: GOOGLE_OAUTH.iosClientId,
+        android: GOOGLE_OAUTH.androidClientId,
+        default: GOOGLE_OAUTH.webClientId,
+      }) ?? '';
+
+      if (!clientId) {
+        throw new Error('Не настроен clientId Google. Укажите его в constants/auth.ts');
+      }
+
+      const redirectUri = Platform.OS === 'web'
+        ? window.location.origin
+        : Linking.createURL('redirect');
+
+      const scope = encodeURIComponent('openid email profile');
+      const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?response_type=token&client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}&prompt=select_account`;
+
+      const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
+
+      if (result.type !== 'success' || !result.url) {
+        throw new Error('Авторизация отменена');
+      }
+
+      const url = result.url;
+      const hash = url.includes('#') ? url.split('#')[1] : '';
+      const query = url.includes('?') ? url.split('?')[1] : '';
+
+      const params = new URLSearchParams(hash || query);
+      const accessToken = params.get('access_token');
+
+      if (!accessToken) {
+        throw new Error('Не удалось получить access_token');
+      }
+
+      const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+
+      if (!userInfoRes.ok) {
+        throw new Error('Не удалось получить данные профиля');
+      }
+
+      const info = await userInfoRes.json() as {
+        sub: string;
+        email: string;
+        name: string;
+        picture?: string;
+        given_name?: string;
+        family_name?: string;
       };
-      
-      await AsyncStorage.setItem(STORAGE_KEYS.GOOGLE_USER, JSON.stringify(mockUser));
-      setGoogleUser(mockUser);
-      
-      return mockUser;
+
+      const user: GoogleUser = {
+        id: info.sub,
+        email: info.email,
+        name: info.name,
+        photo: info.picture,
+        givenName: info.given_name,
+        familyName: info.family_name,
+      };
+
+      await AsyncStorage.setItem(STORAGE_KEYS.GOOGLE_USER, JSON.stringify(user));
+      setGoogleUser(user);
+
+      return user;
     } catch (error) {
       console.error('Error signing in with Google:', error);
       throw error;
