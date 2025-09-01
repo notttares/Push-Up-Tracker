@@ -23,7 +23,7 @@ export default function TabLayout() {
           color: Colors.dark.text,
           fontWeight: 'bold',
         },
-        headerShown: true,
+        headerShown: false,
       }}
     >
       <Tabs.Screen
