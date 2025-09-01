@@ -24,6 +24,12 @@ export interface UserProfile {
   gender: 'male' | 'female';
   maxReps?: number;
   createdAt: number;
+  weightGoal?: {
+    target: number; // kg
+    type: 'lose' | 'gain'; // lose weight or gain weight
+    startWeight: number; // kg
+    startDate: string; // YYYY-MM-DD
+  };
 }
 
 export interface WeeklyStats {

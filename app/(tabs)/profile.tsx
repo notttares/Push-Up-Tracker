@@ -9,7 +9,7 @@ import { ChevronRight, ChevronLeft, ChevronUp, LogIn, LogOut } from 'lucide-reac
 const { width } = Dimensions.get('window');
 
 export default function ProfileScreen() {
-  const { profile, saveProfile, updateMaxReps, getUserPercentile, addWeightEntry, getWeightProgress, weights, googleUser, signInWithGoogle, signOut } = useWorkout();
+  const { profile, saveProfile, updateMaxReps, getUserPercentile, addWeightEntry, getWeightProgress, weights, googleUser, signInWithGoogle, signOut, setWeightGoal, getWeightGoalProgress, getFilteredWeights } = useWorkout();
   const [isEditing, setIsEditing] = useState(!profile);
   const [formData, setFormData] = useState<Partial<UserProfile>>(
     profile || {
@@ -23,7 +23,10 @@ export default function ProfileScreen() {
   const [weightInput, setWeightInput] = useState<string>('');
   const [showWeightModal, setShowWeightModal] = useState(false);
   const [showBMIModal, setShowBMIModal] = useState(false);
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [selectedPeriod, setSelectedPeriod] = useState<'30d' | '60d' | '90d' | '1y' | 'all'>('90d');
+  const [showGoalModal, setShowGoalModal] = useState(false);
+  const [goalTarget, setGoalTarget] = useState<string>('');
+  const [goalType, setGoalType] = useState<'lose' | 'gain'>('lose');
 
   const handleSave = () => {
     if (!formData.height || !formData.weight || !formData.age) {
@@ -152,78 +155,179 @@ export default function ProfileScreen() {
     );
   };
 
-  const renderWeightCalendar = () => {
-    
-    const getDaysInMonth = (date: Date) => {
-      return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
-    };
-    
-    const getFirstDayOfMonth = (date: Date) => {
-      return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
-    };
-    
-    const getWeightForDate = (day: number) => {
-      const dateStr = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      return weights.find(w => w.date === dateStr);
-    };
-    
-    const daysInMonth = getDaysInMonth(currentMonth);
-    const firstDay = getFirstDayOfMonth(currentMonth);
-    const days = [];
-    
-    // Empty cells for days before the first day of the month
-    for (let i = 0; i < firstDay; i++) {
-      days.push(<View key={`empty-${i}`} style={styles.calendarDay} />);
+  const handleSetGoal = async () => {
+    const target = parseFloat(goalTarget);
+    if (target > 0) {
+      await setWeightGoal(target, goalType);
+      setGoalTarget('');
+      setShowGoalModal(false);
+      Alert.alert('Цель установлена!', `Ваша цель: ${goalType === 'lose' ? 'снизить' : 'набрать'} вес до ${target} кг`);
     }
+  };
+
+  const renderWeightChart = () => {
+    const filteredWeights = getFilteredWeights(selectedPeriod);
+    const goalProgress = getWeightGoalProgress();
     
-    // Days of the month
-    for (let day = 1; day <= daysInMonth; day++) {
-      const weightEntry = getWeightForDate(day);
-      days.push(
-        <View key={day} style={[styles.calendarDay, weightEntry && styles.calendarDayWithWeight]}>
-          <Text style={[styles.calendarDayText, weightEntry && styles.calendarDayTextWithWeight]}>
-            {day}
-          </Text>
-          {weightEntry && (
-            <Text style={styles.calendarWeight}>{weightEntry.weight}</Text>
-          )}
+    if (filteredWeights.length === 0) {
+      return (
+        <View style={styles.emptyChart}>
+          <Text style={styles.emptyChartText}>Нет данных о весе</Text>
         </View>
       );
     }
     
-    const monthNames = [
-      'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
-      'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
-    ];
+    const sortedWeights = [...filteredWeights].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const minWeight = Math.min(...sortedWeights.map(w => w.weight)) - 1;
+    const maxWeight = Math.max(...sortedWeights.map(w => w.weight)) + 1;
+    const weightRange = maxWeight - minWeight;
+    
+    const chartHeight = 200;
+    const chartWidth = width - 80;
+    
+    const getYPosition = (weight: number) => {
+      return chartHeight - ((weight - minWeight) / weightRange) * chartHeight;
+    };
+    
+    const getXPosition = (index: number) => {
+      return (index / (sortedWeights.length - 1)) * chartWidth;
+    };
+    
+    const formatDate = (dateStr: string) => {
+      const date = new Date(dateStr);
+      return `${String(date.getDate()).padStart(2, '0')} ${['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'][date.getMonth()]}`;
+    };
     
     return (
-      <View style={styles.weightCalendar}>
-        <View style={styles.calendarHeader}>
-          <TouchableOpacity
-            onPress={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
-            style={styles.calendarArrow}
-          >
-            <ChevronLeft size={24} color={Colors.dark.primary} />
-          </TouchableOpacity>
-          <Text style={styles.calendarTitle}>
-            {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
-          </Text>
-          <TouchableOpacity
-            onPress={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}
-            style={styles.calendarArrow}
-          >
-            <ChevronRight size={24} color={Colors.dark.primary} />
-          </TouchableOpacity>
+      <View style={styles.weightChart}>
+        <View style={styles.goalProgressHeader}>
+          <Text style={styles.goalProgressTitle}>Goal Progress</Text>
+          <View style={styles.goalProgressRight}>
+            <Text style={styles.goalProgressPercent}>
+              {goalProgress ? `${goalProgress.progress.toFixed(1)}%` : '0.0%'}
+            </Text>
+            <Text style={styles.goalProgressLabel}>Goal achieved</Text>
+          </View>
         </View>
         
-        <View style={styles.calendarWeekDays}>
-          {['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'].map(day => (
-            <Text key={day} style={styles.calendarWeekDay}>{day}</Text>
+        <View style={styles.periodSelector}>
+          {[
+            { key: '90d' as const, label: '90 Days' },
+            { key: '6m' as const, label: '6 Months' },
+            { key: '1y' as const, label: '1 Year' },
+            { key: 'all' as const, label: 'All time' },
+          ].map(period => (
+            <TouchableOpacity
+              key={period.key}
+              style={[
+                styles.periodButton,
+                selectedPeriod === period.key && styles.periodButtonActive,
+              ]}
+              onPress={() => setSelectedPeriod(period.key === '6m' ? '60d' : period.key)}
+            >
+              <Text
+                style={[
+                  styles.periodButtonText,
+                  selectedPeriod === period.key && styles.periodButtonTextActive,
+                ]}
+              >
+                {period.label}
+              </Text>
+            </TouchableOpacity>
           ))}
         </View>
         
-        <View style={styles.calendarGrid}>
-          {days}
+        <View style={styles.chartContainer}>
+          <View style={styles.yAxisLabels}>
+            {Array.from({ length: 5 }, (_, i) => {
+              const weight = maxWeight - (i * weightRange / 4);
+              return (
+                <Text key={i} style={styles.yAxisLabel}>
+                  {weight.toFixed(1)} kg
+                </Text>
+              );
+            })}
+          </View>
+          
+          <View style={styles.chartArea}>
+            <View style={[styles.chartBackground, { height: chartHeight }]}>
+              {Array.from({ length: 5 }, (_, i) => (
+                <View key={i} style={styles.gridLine} />
+              ))}
+            </View>
+            
+            <View style={[styles.chartContent, { height: chartHeight }]}>
+              {sortedWeights.map((weight, index) => {
+                const x = getXPosition(index);
+                const y = getYPosition(weight.weight);
+                
+                return (
+                  <View key={weight.id}>
+                    <View
+                      style={[
+                        styles.dataPoint,
+                        {
+                          left: x - 4,
+                          top: y - 4,
+                        },
+                      ]}
+                    />
+                    {index === sortedWeights.length - 1 && (
+                      <View
+                        style={[
+                          styles.dataPointLabel,
+                          {
+                            left: x - 15,
+                            top: y - 25,
+                          },
+                        ]}
+                      >
+                        <Text style={styles.dataPointText}>{weight.weight}</Text>
+                      </View>
+                    )}
+                  </View>
+                );
+              })}
+              
+              {sortedWeights.length > 1 && (
+                <View style={styles.chartLine}>
+                  {sortedWeights.slice(1).map((weight, index) => {
+                    const prevWeight = sortedWeights[index];
+                    const x1 = getXPosition(index);
+                    const y1 = getYPosition(prevWeight.weight);
+                    const x2 = getXPosition(index + 1);
+                    const y2 = getYPosition(weight.weight);
+                    
+                    const length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+                    const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+                    
+                    return (
+                      <View
+                        key={index}
+                        style={[
+                          styles.lineSegment,
+                          {
+                            left: x1,
+                            top: y1,
+                            width: length,
+                            transform: [{ rotate: `${angle}deg` }],
+                          },
+                        ]}
+                      />
+                    );
+                  })}
+                </View>
+              )}
+            </View>
+          </View>
+          
+          <View style={styles.xAxisLabels}>
+            {sortedWeights.filter((_, i) => i % Math.max(1, Math.floor(sortedWeights.length / 6)) === 0).map((weight, index) => (
+              <Text key={weight.id} style={styles.xAxisLabel}>
+                {formatDate(weight.date)}
+              </Text>
+            ))}
+          </View>
         </View>
       </View>
     );
@@ -493,7 +597,7 @@ export default function ProfileScreen() {
             </View>
             
             <ScrollView style={styles.modalContent}>
-              {renderWeightCalendar()}
+              {renderWeightChart()}
               
               <View style={styles.weightInputSection}>
                 <Text style={styles.sectionTitle}>Добавить новый вес</Text>
@@ -517,6 +621,18 @@ export default function ProfileScreen() {
                     <Text style={styles.testButtonText}>Добавить</Text>
                   </TouchableOpacity>
                 </View>
+                
+                {!profile?.weightGoal && (
+                  <View style={styles.goalSection}>
+                    <Text style={styles.sectionTitle}>Установить цель</Text>
+                    <TouchableOpacity
+                      style={styles.setGoalButton}
+                      onPress={() => setShowGoalModal(true)}
+                    >
+                      <Text style={styles.setGoalButtonText}>Установить цель веса</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
               </View>
             </ScrollView>
           </View>
@@ -577,6 +693,77 @@ export default function ProfileScreen() {
                 </View>
               </View>
             </ScrollView>
+          </View>
+        </Modal>
+
+        <Modal
+          visible={showGoalModal}
+          animationType="slide"
+          presentationStyle="pageSheet"
+          onRequestClose={() => setShowGoalModal(false)}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <TouchableOpacity onPress={() => setShowGoalModal(false)}>
+                <Text style={styles.modalCloseButton}>Отмена</Text>
+              </TouchableOpacity>
+              <Text style={styles.modalTitle}>Цель веса</Text>
+              <TouchableOpacity onPress={handleSetGoal} disabled={!goalTarget}>
+                <Text style={[styles.modalCloseButton, !goalTarget && { opacity: 0.5 }]}>Сохранить</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.modalContent}>
+              <View style={styles.goalTypeSelector}>
+                <Text style={styles.sectionTitle}>Тип цели</Text>
+                <View style={styles.genderSelector}>
+                  <TouchableOpacity
+                    style={[
+                      styles.genderButton,
+                      goalType === 'lose' && styles.genderButtonActive,
+                    ]}
+                    onPress={() => setGoalType('lose')}
+                  >
+                    <Text
+                      style={[
+                        styles.genderButtonText,
+                        goalType === 'lose' && styles.genderButtonTextActive,
+                      ]}
+                    >
+                      Потеря веса
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.genderButton,
+                      goalType === 'gain' && styles.genderButtonActive,
+                    ]}
+                    onPress={() => setGoalType('gain')}
+                  >
+                    <Text
+                      style={[
+                        styles.genderButtonText,
+                        goalType === 'gain' && styles.genderButtonTextActive,
+                      ]}
+                    >
+                      Набор веса
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+              
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Целевой вес (кг)</Text>
+                <TextInput
+                  style={styles.input}
+                  value={goalTarget}
+                  onChangeText={setGoalTarget}
+                  keyboardType="decimal-pad"
+                  placeholder={profile ? `Текущий: ${profile.weight} кг` : "75"}
+                  placeholderTextColor={Colors.dark.textTertiary}
+                />
+              </View>
+            </View>
           </View>
         </Modal>
       </View>
@@ -1063,5 +1250,159 @@ const styles = StyleSheet.create({
     color: Colors.dark.success,
     fontWeight: '600',
     marginTop: 2,
+  },
+  emptyChart: {
+    height: 200,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.dark.surface,
+    borderRadius: 12,
+    marginBottom: 20,
+  },
+  emptyChartText: {
+    fontSize: 16,
+    color: Colors.dark.textSecondary,
+  },
+  goalProgressHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  goalProgressTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: Colors.dark.text,
+  },
+  goalProgressRight: {
+    alignItems: 'flex-end',
+  },
+  goalProgressPercent: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: Colors.dark.text,
+  },
+  goalProgressLabel: {
+    fontSize: 14,
+    color: Colors.dark.textSecondary,
+  },
+  periodSelector: {
+    flexDirection: 'row',
+    backgroundColor: Colors.dark.surface,
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 20,
+  },
+  periodButton: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  periodButtonActive: {
+    backgroundColor: Colors.dark.primary,
+  },
+  periodButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.dark.textSecondary,
+  },
+  periodButtonTextActive: {
+    color: '#FFFFFF',
+  },
+  chartContainer: {
+    flexDirection: 'row',
+    marginBottom: 20,
+  },
+  yAxisLabels: {
+    width: 60,
+    justifyContent: 'space-between',
+    paddingRight: 10,
+  },
+  yAxisLabel: {
+    fontSize: 12,
+    color: Colors.dark.textSecondary,
+    textAlign: 'right',
+  },
+  chartArea: {
+    flex: 1,
+    position: 'relative',
+  },
+  chartBackground: {
+    position: 'absolute',
+    width: '100%',
+    justifyContent: 'space-between',
+  },
+  gridLine: {
+    height: 1,
+    backgroundColor: Colors.dark.border,
+    opacity: 0.3,
+  },
+  chartContent: {
+    position: 'relative',
+    width: '100%',
+  },
+  dataPoint: {
+    position: 'absolute',
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Colors.dark.primary,
+  },
+  dataPointLabel: {
+    position: 'absolute',
+    backgroundColor: Colors.dark.primary,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    width: 30,
+    alignItems: 'center',
+  },
+  dataPointText: {
+    fontSize: 10,
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  chartLine: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+  },
+  lineSegment: {
+    position: 'absolute',
+    height: 2,
+    backgroundColor: Colors.dark.primary,
+    transformOrigin: '0 50%',
+  },
+  xAxisLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+    paddingHorizontal: 10,
+  },
+  xAxisLabel: {
+    fontSize: 12,
+    color: Colors.dark.textSecondary,
+  },
+  goalSection: {
+    marginTop: 20,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: Colors.dark.border,
+  },
+  setGoalButton: {
+    backgroundColor: Colors.dark.primary,
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+  },
+  setGoalButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  goalTypeSelector: {
+    marginBottom: 20,
   },
 });

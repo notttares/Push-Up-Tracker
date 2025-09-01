@@ -180,6 +180,74 @@ export const [WorkoutProvider, useWorkout] = createContextHook(() => {
     };
   };
 
+  const setWeightGoal = async (target: number, type: 'lose' | 'gain') => {
+    if (!profile) return;
+    
+    const updatedProfile = {
+      ...profile,
+      weightGoal: {
+        target,
+        type,
+        startWeight: profile.weight,
+        startDate: new Date().toISOString().split('T')[0],
+      },
+    };
+    
+    await saveProfile(updatedProfile);
+  };
+
+  const getWeightGoalProgress = () => {
+    if (!profile?.weightGoal || weights.length === 0) return null;
+    
+    const currentWeight = weights[0].weight;
+    const { target, startWeight, type } = profile.weightGoal;
+    
+    const totalChange = Math.abs(target - startWeight);
+    const currentChange = Math.abs(currentWeight - startWeight);
+    const progress = Math.min(100, (currentChange / totalChange) * 100);
+    
+    const isOnTrack = type === 'lose' 
+      ? currentWeight <= startWeight 
+      : currentWeight >= startWeight;
+    
+    return {
+      progress: Math.round(progress * 10) / 10,
+      currentWeight,
+      targetWeight: target,
+      startWeight,
+      remainingWeight: Math.abs(target - currentWeight),
+      isOnTrack,
+      type,
+    };
+  };
+
+  const getFilteredWeights = (period: '30d' | '60d' | '90d' | '1y' | 'all') => {
+    if (period === 'all') return weights;
+    
+    const now = new Date();
+    let cutoffDate: Date;
+    
+    switch (period) {
+      case '30d':
+        cutoffDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        break;
+      case '60d':
+        cutoffDate = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+        break;
+      case '90d':
+        cutoffDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+        break;
+      case '1y':
+        cutoffDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+        break;
+      default:
+        return weights;
+    }
+    
+    const cutoffDateStr = cutoffDate.toISOString().split('T')[0];
+    return weights.filter(w => w.date >= cutoffDateStr);
+  };
+
   // Get today's workout
   const todayWorkout = useMemo(() => {
     const today = new Date().toISOString().split('T')[0];
@@ -454,6 +522,9 @@ export const [WorkoutProvider, useWorkout] = createContextHook(() => {
     updateMaxReps,
     addWeightEntry,
     getWeightProgress,
+    setWeightGoal,
+    getWeightGoalProgress,
+    getFilteredWeights,
     getUserPercentile,
     googleUser,
     signInWithGoogle,
